@@ -1,0 +1,14 @@
+<h1>Listing users</h1>
+<%= link_to "Link to Instagram account", user_omniauth_authorize_path(:instagram) if !user_signed_in? %>
+<%= link_to "Sign out", destroy_user_session_path if user_signed_in? %>
+
+
+<%#= debug @feed.inspect %>
+
+<% if @feed %>
+<div>
+  <% @feed['data'].each do |photo| %>
+    <%= image_tag photo['images']['thumbnail']['url'] %>
+  <% end %>
+</div>
+<% end %>
