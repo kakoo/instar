@@ -5,10 +5,10 @@
 
 <%#= debug @feed.inspect %>
 
-<% if @feed %>
+<% if @thumbnails %>
 <div>
-  <% @feed['data'].each do |photo| %>
-    <%= image_tag photo['images']['thumbnail']['url'] %>
+  <% @thumbnails.each do |photo| %>
+    <%= image_tag photo['images']['thumbnail']['url'], :alt => photo['likes']['count'] %>
   <% end %>
 </div>
 <% end %>

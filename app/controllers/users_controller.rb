@@ -6,11 +6,38 @@ class UsersController < ApplicationController
 
     require 'restclient'
     require 'json'
+    require 'mini_magick'
+
 
     if user_signed_in? && !current_user.instagram_id.empty?
-      response = RestClient.get "https://api.instagram.com/v1/users/#{current_user.instagram_id}/media/recent?access_token=#{current_user.instagram_token}"
-      @feed = JSON.parse response
-      #logger.debug @feed.inspect
+      @thumbnails = []
+      firstday = Date.new(2012, 1, 1).strftime('%s').to_i
+      c = 60
+      url = "https://api.instagram.com/v1/users/#{current_user.instagram_id}/media/recent?access_token=#{current_user.instagram_token}&count=#{c}"
+      while true
+        logger.debug "Fetching from #{url}"
+        response = RestClient.get url
+        feed = JSON.parse response
+        feed['data'].each {|e| @thumbnails << e if e['created_time'].to_i >= firstday }
+        logger.debug "#{@thumbnails.length} has been fetched."
+        logger.debug "Last created_time : #{feed['data'].last['created_time']}"
+        break if @thumbnails.length >= 900
+        break if firstday > feed['data'].last['created_time'].to_i
+        url = feed['pagination']['next_url']
+        logger.debug "Keep going..."
+      end
+      logger.debug "You have total #{@thumbnails.length} photos this year."
+
+      @thumbnails.sort! {|x, y| y['likes']['count'] <=> x['likes']['count']}
+
+      @thumbnails = @thumbnails[0..99]
+      1.upto(9) do |i|
+        if @thumbnails.length <= (i*i)
+          j = i-1
+          @thumbnails = @thumbnails[0..(j*j-1)]
+          break
+        end
+      end
     end
 
     respond_to do |format|
