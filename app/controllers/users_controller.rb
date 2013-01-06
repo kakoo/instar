@@ -7,7 +7,7 @@ class UsersController < ApplicationController
     require 'restclient'
     require 'json'
     require 'mini_magick'
-
+    require "open-uri"
 
     if user_signed_in? && !current_user.instagram_id.empty?
       @thumbnails = []
@@ -21,7 +21,7 @@ class UsersController < ApplicationController
         feed['data'].each {|e| @thumbnails << e if e['created_time'].to_i >= firstday }
         logger.debug "#{@thumbnails.length} has been fetched."
         logger.debug "Last created_time : #{feed['data'].last['created_time']}"
-        break if @thumbnails.length >= 900
+        break if @thumbnails.length >= 30
         break if firstday > feed['data'].last['created_time'].to_i
         url = feed['pagination']['next_url']
         logger.debug "Keep going..."
@@ -38,7 +38,33 @@ class UsersController < ApplicationController
           break
         end
       end
+
+      path = "#{Rails.root}/log/#{current_user.instagram_id}"
+      FileUtils.mkdir_p(path) unless File.exists?(path)
+      FileUtils.rm_f("#{path}/urls.txt")
+      @thumbnails.each do |photo|
+        File.open("#{path}/urls.txt", "a+") do |fo|
+          fo.write("#{photo['images']['thumbnail']['url']}\n")
+          logger.debug photo['images']['thumbnail']['url']
+        end
+      end
+
+      logger.debug "going to run the script"
+      # run the script.
+      #`ruby saveimage.rb #{current_user.instagram_id}`
+      ruby = `which ruby`.chomp
+
+      logger.debug "ruby path = #{ruby}"
+
+      command = "nohup #{ruby} #{Rails.root}/test/saveimage.rb #{current_user.instagram_id} &"
+
+      logger.debug command
+
+      out = `#{command}`
+      logger.debug out
+      logger.debug "finish"
     end
+
 
     respond_to do |format|
       format.html # index.html.erb
