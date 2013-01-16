@@ -1,14 +1,22 @@
-<h1>Listing users</h1>
+<h1>My Best Instagram</h1>
 <%= link_to "Link to Instagram account", user_omniauth_authorize_path(:instagram) if !user_signed_in? %>
 <%= link_to "Sign out", destroy_user_session_path if user_signed_in? %>
 
 
 <%#= debug @feed.inspect %>
-
-<% if @thumbnails %>
 <div>
-  <% @thumbnails.each do |photo| %>
-    <%= image_tag photo['images']['thumbnail']['url'], :alt => photo['likes']['count'] %>
-  <% end %>
+<%= form_tag('/') %>
+<%= select_tag :count, options_for_select(1.upto(10).map {|n| ["#{n}x#{n}", n] })  %>
+<%= text_field_tag 'start_date', nil, :value => '2013-1-1' %>
+<%= text_field_tag 'end_date', nil, :value => '2013-12-31' %>
+<%= submit_tag 'Search' %>
 </div>
-<% end %>
+
+<!--<% if @thumbnails %>-->
+<!--<div>-->
+  <!--<% @thumbnails.each do |photo| %>-->
+    <!--<%= image_tag photo['images']['thumbnail']['url'], :alt => photo['likes']['count'] %>-->
+  <!--<% end %>-->
+<!--</div>-->
+<!--<% end %>-->
+<div><%= image_tag @out %></div>
